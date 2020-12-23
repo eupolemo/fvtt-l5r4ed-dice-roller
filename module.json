@@ -1,0 +1,8 @@
+{
+  "name": "l5r4ed-dice-roller",
+  "title": "Dice Roler - Legends of the five rings 4th edition",
+  "description": "Dice roller using sintax of L5R 4th Edition.",
+  "author": "eupolemo",
+  "version": "1.0.0",
+  "minimumCoreVersion": "0.5.0"
+}
