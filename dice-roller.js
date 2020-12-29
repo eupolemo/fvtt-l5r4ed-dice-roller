@@ -1,6 +1,19 @@
+Hooks.on("chatMessage", function (chatlog, message, chatdata) {
+  var oldMessage = message;
+  let pattern = /^\d+k\d+([+]\d+)?$/;
+
+  console.log(`Parser to message ${message} ${pattern.test(message)}`)
+
+  if(pattern.test(message)) {
+    message = roll_parser(message)
+
+    chatlog.processMessage(message)
+    return false
+  }
+});
+
 function roll_parser(roll) {
   let [dices, kept_plus_bonus] = roll.split`k`.map(parseIntIfPossible);
-  console.log(toString(kept_plus_bonus))
   let [kept, bonus = 0] = kept_plus_bonus.toString().split`+`.map(x=>+x); //Parse to int
 
   let roll_values = {
@@ -12,7 +25,9 @@ function roll_parser(roll) {
   }
   console.log(roll_values)
   let result = calculate_roll(roll_values)
-  return `/r ${result.dices}d10x${roll_values.explode}${10 - result.kept === 0 ? '' : 'dl' + (10 - result.kept)}+${result.bonus}`
+  console.log(result)
+  return `/r ${result.dices}d10k${result.kept}x${result.explode}+${result.bonus}`
+  // return `/r ${result.dices}d10x${result.explode}${result.dices - result.kept <= 0 ? '' : 'dl' + (10 - result.kept)}+${result.bonus}`
 }
 
 function parseIntIfPossible(x) {
@@ -52,7 +67,7 @@ function calculate_keeps({kept, rises} = roll) {
 
   while(kept < 10) {
     if(rises > 0) {
-      if(rises > 2)
+      if(rises > 1)
         kept++;
         rises -= 2;
     } else {
@@ -68,14 +83,3 @@ function calculate_bonus({rises, bonus} = roll) {
   bonus += rises * 2;
   return bonus
 }
-
-roll = {
-  dices: 30,
-  kept: 1,
-  rises: 0,
-  bonus: 0,
-}
-
-let roll_string = '10k8'
-
-console.log(roll_parser(roll_string))
