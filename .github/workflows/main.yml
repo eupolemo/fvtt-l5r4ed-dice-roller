@@ -26,4 +26,4 @@ jobs:
         prerelease: false
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: './module.json,./l5r4ed-dice-roller.zip'
-        tag: [latest, ${{ steps.get-version.outputs.version }}]
+        tag: latest
