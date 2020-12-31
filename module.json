@@ -9,7 +9,7 @@
   "scripts": [
     "./dice-roller.js"
   ],
-  "url": "https://github.com/fvtt-l5r4ed-dice-roller",
+  "url": "https://github.com/eupolemo/fvtt-l5r4ed-dice-roller",
   "manifest": "https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/raw/main/module.json",
   "download": "https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/releases/download/latest/l5r4ed-dice-roller.zip"
 }
