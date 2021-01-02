@@ -24,6 +24,18 @@ jobs:
         manifest: https://github.com/${{github.repository}}/releases/latest/download/module.json
         download: https://github.com/${{github.repository}}/releases/download/${{ steps.get-version.outputs.version }}/l5r4ed-dice-roller.zip
     - run: zip -r ./l5r4ed-dice-roller.zip module.json dice-roller.js
+    - name: Update Latest Release
+      id: update_latest_release
+      uses: ncipollo/release-action@v1
+      if: endsWith(github.ref, 'main')
+      with:
+        allowUpdates: true
+        name: Latest Release
+        draft: false
+        prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts: './module.json,./l5r4ed-dice-roller.zip'
+        tag: latest
     - name: Create Versioned Release
       id: create_versioned_release
       uses: ncipollo/release-action@v1
@@ -36,15 +48,3 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: './module.json,./l5r4ed-dice-roller.zip'
         tag: ${{ steps.get-version.outputs.version }}
-    - name: Update Versioned Release
-      id: update_versioned_release
-      uses: ncipollo/release-action@v1
-      if: endsWith(github.ref, 'main')
-      with:
-        allowUpdates: true
-        name: Latest Release
-        draft: false
-        prerelease: false
-        token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts: './module.json,./l5r4ed-dice-roller.zip'
-        tag: latest
