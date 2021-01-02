@@ -2,8 +2,7 @@ name: Update Release
 
 on:
   release:
-    types:
-    - prereleased
+    types: [prereleased,edited,created]
 
 jobs:
   build:
