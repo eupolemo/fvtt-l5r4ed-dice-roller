@@ -42,9 +42,9 @@ jobs:
       if: endsWith(github.ref, 'main')
       with:
         allowUpdates: true
-        name: Release ${{ steps.get-version.outputs.version }}
+        name: Latest Release
         draft: false
         prerelease: false
         token: ${{ secrets.GITHUB_TOKEN }}
         artifacts: './module.json,./l5r4ed-dice-roller.zip'
-        tag: ${{ steps.get-version.outputs.version }}
+        tag: latest
