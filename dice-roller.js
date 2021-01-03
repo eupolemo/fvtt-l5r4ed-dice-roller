@@ -1,12 +1,38 @@
-Hooks.on("chatMessage", function (chatlog, message, chatdata) {
-  let pattern = /^\d+k\d+([+]\d+)?$/;
+class L5rRoll extends Roll {
 
-  if ( pattern.test(message) ) {
+}
+
+Hooks.on("chatMessage", function (chatlog, message, chatdata) {
+  console.log(message)
+  let pattern = /^\d+k\d+([+]\d+)?$/;
+  let roll_pattern = /^(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}/;
+  let inside_message_roll = /\[\[(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}\d+k\d+([+]\d+)?\]\]/
+
+  if ( roll_pattern.test(message) ) {
+    let parts = message.split(' ')
+    console.log(parts)
+    if( pattern.test(parts[1])) {
+      let roll_parsed = roll_parser(parts[1])
+      chatlog.processMessage(`${parts[0]} ${roll_parsed}`)
+      return false
+    }
+  } else if ( pattern.test(message) ) {
     message = roll_parser(message)
-    roll_parsed = message
 
     chatlog.processMessage(`/r ${message}`)
     return false
+  } else if ( inside_message_roll.test(message) ) {
+    let begin_message = message.match(/(.*)\[\[/).pop();
+    let end_message = message.match(/\]\](.*)/).pop();
+    let roll = message.match(/\[\[(.*)\]\]/).pop();
+    console.log(begin_message + '   ' + roll + '   ' + end_message)
+    let parts = roll.split(' ')
+    console.log(parts)
+    if( pattern.test(parts[1])) {
+      let roll_parsed = roll_parser(parts[1])
+      chatlog.processMessage(`${begin_message} [[${parts[0]} ${roll_parsed}]] ${end_message}`)
+      return false
+    }
   }
 });
 
