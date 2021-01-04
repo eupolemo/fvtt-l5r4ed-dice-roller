@@ -3,14 +3,13 @@ class L5rRoll extends Roll {
 }
 
 Hooks.on("chatMessage", function (chatlog, message, chatdata) {
-  console.log(message)
   let pattern = /^\d+k\d+([+]\d+)?$/;
   let roll_pattern = /^(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}/;
   let inside_message_roll = /\[\[(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}\d+k\d+([+]\d+)?\]\]/
 
   if ( roll_pattern.test(message) ) {
     let parts = message.split(' ')
-    console.log(parts)
+    // console.log(parts)
     if( pattern.test(parts[1])) {
       let roll_parsed = roll_parser(parts[1])
       chatlog.processMessage(`${parts[0]} ${roll_parsed}`)
@@ -25,9 +24,9 @@ Hooks.on("chatMessage", function (chatlog, message, chatdata) {
     let begin_message = message.match(/(.*)\[\[/).pop();
     let end_message = message.match(/\]\](.*)/).pop();
     let roll = message.match(/\[\[(.*)\]\]/).pop();
-    console.log(begin_message + '   ' + roll + '   ' + end_message)
+    // console.log(begin_message + '   ' + roll + '   ' + end_message)
     let parts = roll.split(' ')
-    console.log(parts)
+    // console.log(parts)
     if( pattern.test(parts[1])) {
       let roll_parsed = roll_parser(parts[1])
       chatlog.processMessage(`${begin_message} [[${parts[0]} ${roll_parsed}]] ${end_message}`)
@@ -37,31 +36,42 @@ Hooks.on("chatMessage", function (chatlog, message, chatdata) {
 });
 
 Hooks.on('renderChatMessage', async (app, html, msg) => {
-  if ( !app.isRoll || !app.isContentVisible ) return;
-  let pattern = /^\d+d\d+k\d+(x\d+)?( \+\ \d+)?$/;
+  if ( app.isRoll ) {
+    let pattern = /^\d+d\d+k\d+(x\d+)?( \+\ \d+)?$/;
 
-  const roll = app.roll
-  const formula = roll.formula
-  const die = roll.dice[0]
-  let bonus = 0
+    const roll = app.roll
+    const formula = roll.formula
+    const die = roll.dice[0]
+    let bonus = 0
 
-  if ( roll.terms.includes('+') ) {
-    bonus = roll.terms[roll.terms.indexOf('+') + 1]
-  }
+    if ( roll.terms.includes('+') ) {
+      bonus = roll.terms[roll.terms.indexOf('+') + 1]
+    }
 
-  if ( pattern.test(formula) ) {
-    const b_div_tag = '<div class="dice-formula">'
-    const e_div_tag = "</div>"
-    const b_span_tag = '<span class="part-formula">'
-    const e_span_tag = '</span>'
-    const regex_div = new RegExp(`${b_div_tag}.*?${e_div_tag}`, 'g')
-    const regex_span = new RegExp(`${b_span_tag}.*?${e_span_tag}`, 'g')
+    if ( pattern.test(formula) ) {
+      const b_div_tag = '<div class="dice-formula">'
+      const e_div_tag = "</div>"
+      const b_span_tag = '<span class="part-formula">'
+      const e_span_tag = '</span>'
+      const regex_div = new RegExp(`${b_div_tag}.*?${e_div_tag}`, 'g')
+      const regex_span = new RegExp(`${b_span_tag}.*?${e_span_tag}`, 'g')
 
-    let roll_l5r = `${die.number}${die.modifiers[0]}${bonus > 0 ? ' + ' + bonus : ''}${die.modifiers.length > 1 ? ' Exploding: ' + die.modifiers[1].replace('x', '') : ''}`
+      let roll_l5r = `${die.number}${die.modifiers[0]}${bonus > 0 ? ' + ' + bonus : ''}${die.modifiers.length > 1 ? ' Exploding: ' + die.modifiers[1].replace('x', '') : ''}`
 
-    msg.message.content = msg.message.content.replace(regex_div, `${b_div_tag} ${roll_l5r} ${e_div_tag}`).replace(regex_span, `${b_span_tag} ${roll_l5r} ${e_span_tag}`);
-    html.find(".dice-formula")[0].innerHTML = roll_l5r
-    html.find(".part-formula")[0].innerHTML = roll_l5r
+      msg.message.content = msg.message.content.replace(regex_div, `${b_div_tag} ${roll_l5r} ${e_div_tag}`).replace(regex_span, `${b_span_tag} ${roll_l5r} ${e_span_tag}`);
+      html.find(".dice-formula")[0].innerHTML = roll_l5r
+      html.find(".part-formula")[0].innerHTML = roll_l5r
+    }
+  } else {
+    let inside_message_roll = /\d+d\d+k\d+(x\d+)?(\+\d+)?/g
+    if( !inside_message_roll.test(msg.message.content) || !msg.message.content.includes('data-formula')) return;
+    const roll = msg.message.content.match(inside_message_roll).pop()
+    let [dices, , kept, explode, bonus] = roll.split(/[dkx+-]+/)
+
+    let xky = `${dices}k${kept}${bonus > 0 ? ' + ' + bonus : ''}`
+    msg.message.content = msg.message.content.replace(inside_message_roll, `${xky} Exploding ${explode}`)
+    html.find(".message-content")[0].children[0].setAttribute('tittle', `${xky}`)
+    html.find(".inline-roll")[0].innerHTML = html.find(".inline-roll")[0].innerHTML.replace(inside_message_roll, `${xky}`)
   }
 })
 
@@ -129,7 +139,7 @@ function calculate_keeps({kept, rises} = roll) {
 }
 
 function calculate_bonus({rises, bonus} = roll) {
-  console.log(rises + ' ' + bonus)
+  // console.log(rises + ' ' + bonus)
   bonus += rises * 2;
   return bonus
 }
