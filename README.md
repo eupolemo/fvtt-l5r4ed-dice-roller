@@ -1,5 +1,6 @@
 <img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/eupolemo/fvtt-l5r4ed-dice-roller?style=for-the-badge"> <img alt="GitHub Releases" src="https://img.shields.io/github/downloads/eupolemo/fvtt-l5r4ed-dice-roller/latest/total?style=for-the-badge">
 
+[Release Notes](#release-notes)
 # fvtt-l5r4ed-dice-roller
 An implementation of a dice roller to Legends of the five rings 4th Edition game system for Foundry Virtual Tabletop (http://foundryvtt.com).
 
@@ -18,3 +19,13 @@ Example:
 - /br or /broll or /blindroll 6k5
 
 <img src="readme-resources/roll-l5r.gif"/>
+
+## Release Notes
+### 1.0.0
+- First release
+
+### 1.0.1
+- [Issue #6](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/6) Support to FoundryVTT 0.7.9
+
+### 1.1.0
+- [Issue #8](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/8) Support FVTT rolls (roll, gm roll, self roll and blind roll)
