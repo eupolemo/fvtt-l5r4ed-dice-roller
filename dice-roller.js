@@ -70,7 +70,7 @@ Hooks.on('renderChatMessage', async (app, html, msg) => {
 
     let xky = `${dices}k${kept}${bonus > 0 ? ' + ' + bonus : ''}`
     msg.message.content = msg.message.content.replace(inside_message_roll, `${xky} Exploding ${explode}`)
-    html.find(".message-content")[0].children[0].setAttribute('tittle', `${xky}`)
+    html.find(".message-content")[0].children[0].setAttribute('title', `${xky}`)
     html.find(".inline-roll")[0].innerHTML = html.find(".inline-roll")[0].innerHTML.replace(inside_message_roll, `${xky}`)
   }
 })
