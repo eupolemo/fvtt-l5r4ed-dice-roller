@@ -32,4 +32,4 @@ Example:
 - [Issue #6](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/6) Support to FoundryVTT 0.7.9
 
 ### 1.1.0
-- [Issue #8](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/8) Support FVTT rolls (roll, gm roll, self roll and blind roll)
+- [Issue #8](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/8) Support FVTT rolls (roll, gm roll, self roll, blind roll and inline deferred rolls)
