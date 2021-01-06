@@ -13,7 +13,7 @@ It captures chat message and converts to a Foundry VTT roll pattern and shows th
 Example: 10k6 is converted to '/r 10d10k6x10'
 
 ### Accepts FVTT Rolls
-It can be used with roll, GM roll, self roll, blind roll and inline roll.
+It can be used with roll, GM roll, self roll, blind roll and deferred inline roll.
 
 Example:
 - /r or /roll 6k5;
