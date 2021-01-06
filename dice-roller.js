@@ -17,9 +17,11 @@ Hooks.on("chatMessage", function (chatlog, message, chatdata) {
     chatlog.processMessage(`/r ${message}`)
     return false
   } else if ( inside_message_roll.test(message) ) {
-    let result = message.replace(/\[\[(\/r .*?)\]\]/g, function(match, token) {
+    const deferred_roll_pattern = /\[\[(?:\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}(.*?)\]\]/g;
+    const kxy_pattern = /\d+k\d+([+]\d+)?/;
+    let result = message.replace(deferred_roll_pattern, function(match, token) {
       if ( !inside_message_roll.test(match) ) return match;
-      return '[[' + roll_parser(token) + ']]'
+      return match.replace(kxy_pattern, roll_parser(token))
     });
 
     chatlog.processMessage(result)
