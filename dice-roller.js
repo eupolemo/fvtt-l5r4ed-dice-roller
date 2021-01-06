@@ -1,16 +1,12 @@
-class L5rRoll extends Roll {
-
-}
-
 Hooks.on("chatMessage", function (chatlog, message, chatdata) {
-  let pattern = /^\d+k\d+([+]\d+)?$/;
-  let roll_pattern = /^(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}/;
-  let inside_message_roll = /\[\[(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}\d+k\d+([+]\d+)?\]\]/
+  const pattern = /^\d+k\d+([+]\d+)?$/;
+  const roll_pattern = /^(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}/;
+  const inside_message_roll = /\[\[(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}\d+k\d+([+]\d+)?\]\]/
 
   if ( roll_pattern.test(message) ) {
     let parts = message.split(' ')
     // console.log(parts)
-    if( pattern.test(parts[1])) {
+    if ( pattern.test(parts[1]) ) {
       let roll_parsed = roll_parser(parts[1])
       chatlog.processMessage(`${parts[0]} ${roll_parsed}`)
       return false
@@ -21,23 +17,19 @@ Hooks.on("chatMessage", function (chatlog, message, chatdata) {
     chatlog.processMessage(`/r ${message}`)
     return false
   } else if ( inside_message_roll.test(message) ) {
-    let begin_message = message.match(/(.*)\[\[/).pop();
-    let end_message = message.match(/\]\](.*)/).pop();
-    let roll = message.match(/\[\[(.*)\]\]/).pop();
-    // console.log(begin_message + '   ' + roll + '   ' + end_message)
-    let parts = roll.split(' ')
-    // console.log(parts)
-    if( pattern.test(parts[1])) {
-      let roll_parsed = roll_parser(parts[1])
-      chatlog.processMessage(`${begin_message} [[${parts[0]} ${roll_parsed}]] ${end_message}`)
-      return false
-    }
+    let result = message.replace(/\[\[(\/r .*?)\]\]/g, function(match, token) {
+      if ( !inside_message_roll.test(match) ) return match;
+      return '[[' + roll_parser(token) + ']]'
+    });
+
+    chatlog.processMessage(result)
+    return false
   }
 });
 
 Hooks.on('renderChatMessage', async (app, html, msg) => {
   if ( app.isRoll ) {
-    let pattern = /^\d+d\d+k\d+(x\d+)?( \+\ \d+)?$/;
+    const pattern = /^\d+d\d+k\d+(x\d+)?( \+\ \d+)?$/;
 
     const roll = app.roll
     const formula = roll.formula
@@ -63,15 +55,17 @@ Hooks.on('renderChatMessage', async (app, html, msg) => {
       html.find(".part-formula")[0].innerHTML = roll_l5r
     }
   } else {
-    let inside_message_roll = /\d+d\d+k\d+(x\d+)?(\+\d+)?/g
+    const inside_message_roll = /\d+d\d+k\d+(x\d+)?(\+\d+)?/g
     if( !inside_message_roll.test(msg.message.content) || !msg.message.content.includes('data-formula')) return;
-    const roll = msg.message.content.match(inside_message_roll).pop()
-    let [dices, , kept, explode, bonus] = roll.split(/[dkx+-]+/)
 
-    let xky = `${dices}k${kept}${bonus > 0 ? ' + ' + bonus : ''}`
-    msg.message.content = msg.message.content.replace(inside_message_roll, `${xky} Exploding ${explode}`)
-    html.find(".message-content")[0].children[0].setAttribute('title', `${xky}`)
-    html.find(".inline-roll")[0].innerHTML = html.find(".inline-roll")[0].innerHTML.replace(inside_message_roll, `${xky}`)
+    const roll = msg.message.content.match(inside_message_roll)
+    for ( var child of html.find(".message-content")[0].children ) {
+      const roll = child.getAttribute('title').match(inside_message_roll).pop()
+      let [dices, , kept, explode, bonus] = roll.split(/[dkx+-]+/)
+      let xky = `${dices}k${kept}${bonus > 0 ? ' + ' + bonus : ''}`
+      child.setAttribute('title', `${xky}`)
+      child.innerHTML = child.innerHTML.replace(inside_message_roll, `${xky}`)
+    }
   }
 })
 
@@ -92,7 +86,7 @@ function roll_parser(roll) {
 }
 
 function parseIntIfPossible(x) {
-  var numbers = /^[0-9]+$/;
+  const numbers = /^[0-9]+$/;
   if ( x.match(numbers) ) {
     return parseInt(x)
   } else {
