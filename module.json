@@ -3,12 +3,10 @@
   "title": "Dice Roller - Legends of the five rings 4th edition",
   "description": "Dice roller using syntax of L5R 4th Edition.",
   "author": "Eupolemo Castro",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "minimumCoreVersion": "0.7.0",
   "compatibleCoreVersion": "0.7.9",
-  "scripts": [
-    "./dice-roller.js"
-  ],
+  "scripts": ["./dice-roller.js"],
   "url": "https://github.com/eupolemo/fvtt-l5r4ed-dice-roller",
   "manifest": "https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/raw/main/module.json",
   "download": "https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/releases/download/latest/l5r4ed-dice-roller.zip"
