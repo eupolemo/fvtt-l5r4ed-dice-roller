@@ -35,7 +35,7 @@ Hooks.on("chatMessage", function (chatlog, message, chatdata) {
 
 Hooks.on("renderChatMessage", async (app, html, msg) => {
   if (app.isRoll) {
-    const pattern = /^\d+d\d+k\d+(x(>=)?\d+)?( \+\ \d+)?$/;
+    const pattern = /^\d+d\d+(r1)?k\d+(x(>=)?\d+)?( \+\ \d+)?$/;
 
     const roll = app.roll;
     const formula = roll.formula;
@@ -54,11 +54,15 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
       const regex_div = new RegExp(`${b_div_tag}.*?${e_div_tag}`, "g");
       const regex_span = new RegExp(`${b_span_tag}.*?${e_span_tag}`, "g");
 
-      let roll_l5r = `${die.number}${die.modifiers[0]}${
-        bonus > 0 ? " + " + bonus : ""
-      }${
+      let roll_l5r = `${die.number}${
+        die.modifiers[0] === "r1" ? die.modifiers[1] : die.modifiers[0]
+      }${bonus > 0 ? " + " + bonus : ""}${
         die.modifiers.length > 1
-          ? " Exploding: " + die.modifiers[1].replace("x", "").replace(">=", "")
+          ? " Exploding: " +
+            (die.modifiers[0] === "r1"
+              ? die.modifiers[2].replace("x", "").replace(">=", "") +
+                " with Emphasis"
+              : die.modifiers[1].replace("x", "").replace(">=", ""))
           : " Untrained"
       }`;
 
@@ -69,7 +73,7 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
       html.find(".part-formula")[0].innerHTML = roll_l5r;
     }
   } else {
-    const inside_message_roll = /\d+d\d+k\d+(x(>=)?\d+)?(\+\d+)?/g;
+    const inside_message_roll = /\d+d\d+(r1)?k\d+(x(>=)?\d+)?(\+\d+)?/g;
     if (
       !inside_message_roll.test(msg.message.content) ||
       !msg.message.content.includes("data-formula")
@@ -81,7 +85,11 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
       const roll = child.getAttribute("title").match(inside_message_roll).pop();
       let [dices, , kept, explode, bonus] = roll.split(/[dkx>=+-]+/);
       let xky = `${dices}k${kept}${bonus > 0 ? " + " + bonus : ""}${
-        explode <= 10 ? " exploding " + explode : ""
+        explode <= 10
+          ? " Exploding " +
+            explode +
+            (roll.includes("r1") ? " with Emphasis" : "")
+          : ""
       }`;
       child.setAttribute("title", `${xky}`);
       console.log(child.innerHTML);
@@ -137,7 +145,7 @@ function roll_parser(roll) {
       ? " - " + result.bonus
       : ""
   }${result.untrained ? " Untrained" : " Exploding " + result.explode}`;
-  return `${result.dices}d10k${result.kept}${
+  return `${result.dices}d10${emphasis ? "r1" : ""}k${result.kept}${
     result.untrained ? "" : "x>=" + result.explode
   }+${result.bonus}`;
 }
