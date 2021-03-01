@@ -66,4 +66,5 @@ Example:
 
 ### 1.3.0
 
+- [Issue #7](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/7) Discard excess dices from keep when have less than 10 dices on roll
 - [Issue #16](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/17) Added untrained and emphasis roll
