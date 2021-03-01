@@ -83,21 +83,31 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
     const roll = msg.message.content.match(inside_message_roll);
     for (var child of html.find(".message-content")[0].children) {
       const roll = child.getAttribute("title").match(inside_message_roll).pop();
-      let [dices, , kept, explode, bonus] = roll.split(/[dkx>=+-]+/);
+      let [dices, , kept_explode_bonus] = roll.split(/[dk]+/);
+      let kept,
+        explode_bonus = 0,
+        bonus = 0;
+      let explode = 11;
+      if (kept_explode_bonus.toString().includes("x")) {
+        [kept, explode_bonus] = kept_explode_bonus.split(/[x>=]+/);
+      } else if (kept_explode_bonus.includes("+")) {
+        [kept, bonus] = kept_explode_bonus.split(/[+]+/);
+      }
+      if (explode_bonus.toString().includes("+")) {
+        [explode, bonus = 0] = explode_bonus.split(/[+]+/);
+      }
+
       let xky = `${dices}k${kept}${bonus > 0 ? " + " + bonus : ""}${
         explode <= 10
           ? " Exploding " +
             explode +
             (roll.includes("r1") ? " with Emphasis" : "")
-          : ""
+          : " Untrained"
       }`;
       child.setAttribute("title", `${xky}`);
-      console.log(child.innerHTML);
-      console.log(child.childNodes[1].nodeValue);
       child.childNodes.forEach((element) => {
         let a = 0;
         if (element.nodeValue === null) {
-          console.log("entrou");
           return;
         }
         element.nodeValue = element.nodeValue.replace(
@@ -123,10 +133,16 @@ function roll_parser(roll) {
     emphasis = true;
   }
   let [dices, kept_explode_bonus] = roll.split`k`.map(parseIntIfPossible);
-  let [kept, explode_bonus = 10] = kept_explode_bonus.toString().split`x`.map(
-    (x) => +x
-  );
-  let [explode, bonus = 0] = explode_bonus.toString().split`+`.map((x) => +x); //Parse to int
+  let kept,
+    explode_bonus,
+    explode = 10,
+    bonus = 0;
+  if (kept_explode_bonus.toString().includes("x")) {
+    [kept, explode_bonus = 10] = kept_explode_bonus.toString().split("x");
+    [explode, bonus = 0] = explode_bonus.toString().split`+`.map((x) => +x); //Parse to int
+  } else {
+    [kept, bonus = 0] = kept_explode_bonus.toString().split`+`.map((x) => +x);
+  }
 
   let roll_values = {
     dices,
@@ -137,6 +153,7 @@ function roll_parser(roll) {
     untrained,
     emphasis,
   };
+
   let result = calculate_roll(roll_values);
   roll_l5r = `${result.dices}k${result.kept}${
     result.bonus > 0
@@ -179,8 +196,12 @@ function calculate_rises({ dices, rises } = roll) {
   return { dices, rises };
 }
 
-function calculate_keeps({ kept, rises } = roll) {
-  if (kept >= 10) {
+function calculate_keeps({ dices, kept, rises } = roll) {
+  if (dices < 10) {
+    if (kept > 10) {
+      kept = 10;
+    }
+  } else if (kept >= 10) {
     rises += kept - 10;
     kept = 10;
   }
