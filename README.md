@@ -12,8 +12,14 @@ An implementation of a dice roller to Legends of the five rings 4th Edition game
 
 It captures chat message and converts to a Foundry VTT roll pattern and shows the result with the Legend of Five Rings text roll.
 
-Syntax Allowed: XkYxZ+A
+- It makes roll with different explosion numbers;
+- Accepts Untrained rolls;
+- Accepts Emphases rolls;
 
+Syntax Allowed: XkYxZ+A or uXkY+A or eXkYxZ+A
+
+- u = untrained roll (no explosion);
+- e = emphasis roll (reroll the 1 of the first roll);
 - X = Number of rolled dice;
 - Y = Number of kept dice;
 - Z = Number equal or higher to explode;
@@ -23,6 +29,8 @@ Example:
 
 - 10k6 is converted to '/r 10d10k6x>=10'
 - 10k8x9 is converted to '/r 10d10k8x>=9'
+- u10k7 is converted to '/r 10d10k7'
+- e10k5x8 is converted to '/r 10d10r1k5x>=8
 
 ### Accepts FVTT Rolls
 
@@ -55,3 +63,8 @@ Example:
 ### 1.2.0
 
 - [Issue #17](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/17) Allow syntax to explode values equal or higher than a number
+
+### 1.3.0
+
+- [Issue #7](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/7) Discard excess dices from keep when have less than 10 dices on roll
+- [Issue #16](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/17) Added untrained and emphasis roll
