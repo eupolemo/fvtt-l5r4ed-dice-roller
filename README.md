@@ -1,4 +1,4 @@
-<img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/eupolemo/fvtt-l5r4ed-dice-roller?style=for-the-badge"> <img alt="GitHub Releases" src="https://img.shields.io/github/downloads/eupolemo/fvtt-l5r4ed-dice-roller/latest/total?style=for-the-badge">
+<img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/eupolemo/fvtt-l5r4ed-dice-roller?style=for-the-badge"> <img alt="GitHub Releases" src="https://img.shields.io/github/downloads/eupolemo/fvtt-l5r4ed-dice-roller/latest/l5r4ed-dice-roller.zip?color=3CB371&label=DOWNLOADS&style=for-the-badge">
 
 # fvtt-l5r4ed-dice-roller
 
