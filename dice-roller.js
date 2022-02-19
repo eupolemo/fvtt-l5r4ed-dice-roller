@@ -1,6 +1,6 @@
 Hooks.on("chatMessage", function (chatlog, message, chatdata) {
   // const pattern = /^\d+k\d+x\d+([+]\d+)?$/;
-  const pattern = /^(u|e)?\d+k\d+(x\d+)?([+]\d+)?(\[.+\])?$/;
+  const pattern = /^(u|e)?\d+k\d+(x\d+)?([+]\d+)?(\[.+\])?(\#(.*))?$/;
   const roll_pattern = /^(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}/;
   const inside_message_roll = /\[\[(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}(u|e)?\d+k\d+(x\d+)?([+]\d+)?(\[.+\])?\]\]/;
 
@@ -11,18 +11,33 @@ Hooks.on("chatMessage", function (chatlog, message, chatdata) {
     if (pattern.test(parts[1])) {
       const describing_dice_pattern = /\[.*\]*$/;
       const describing_dice = parts[1].match(describing_dice_pattern);
-      const message_without_describing = parts[1].replace(describing_dice_pattern, "");
+      let message_without_describing = parts[1].replace(describing_dice_pattern, "");
+
+      const describing_roll_pattern = /(\#(.*))*$/;
+      let describing_roll;
+      if(describing_roll_pattern.test(message_without_describing)) {
+        describing_roll = message_without_describing.match(describing_roll_pattern);
+        message_without_describing = message_without_describing.replace(describing_roll_pattern, "");
+      }
+
       let roll_parsed = roll_parser(message_without_describing);
-      chatlog.processMessage(`${parts[0]} ${roll_parsed}${describing_dice}`);
+      chatlog.processMessage(`${parts[0]} ${roll_parsed}${describing_dice ? describing_dice : ""}${describing_roll ? describing_roll[0] : ""}`);
       return false;
     }
   } else if (pattern.test(message)) {
     const describing_dice_pattern = /\[.*\]*$/;
     const describing_dice = message.match(describing_dice_pattern);
-    const message_without_describing = message.replace(describing_dice_pattern, "");
+    let message_without_describing = message.replace(describing_dice_pattern, "");
+
+    const describing_roll_pattern = /(\#(.*))*$/;
+    let describing_roll;
+    if(describing_roll_pattern.test(message_without_describing)) {
+      describing_roll = message_without_describing.match(describing_roll_pattern);
+      message_without_describing = message_without_describing.replace(describing_roll_pattern, "");
+    }
 
     message = roll_parser(message_without_describing);
-    chatlog.processMessage(`/r ${message}${describing_dice && describing_dice.length > 0 ? describing_dice[0] : ""}`);
+    chatlog.processMessage(`/r ${message}${describing_dice && describing_dice.length > 0 ? describing_dice[0] : ""}${describing_dice ? describing_dice : ""}${describing_roll ? describing_roll[0] : ""}`);
     return false;
   } else if (inside_message_roll.test(message)) {
     const deferred_roll_pattern = /\[\[(?:\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}(.*?)\]\]/g;
