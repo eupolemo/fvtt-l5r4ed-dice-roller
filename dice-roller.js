@@ -1,25 +1,33 @@
 Hooks.on("chatMessage", function (chatlog, message, chatdata) {
   // const pattern = /^\d+k\d+x\d+([+]\d+)?$/;
-  const pattern = /^(u|e)?\d+k\d+(x\d+)?([+]\d+)?$/;
+  const pattern = /^(u|e)?\d+k\d+(x\d+)?([+]\d+)?(\[.+\])?$/;
   const roll_pattern = /^(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}/;
-  const inside_message_roll = /\[\[(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}(u|e)?\d+k\d+(x\d+)?([+]\d+)?\]\]/;
+  const inside_message_roll = /\[\[(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}(u|e)?\d+k\d+(x\d+)?([+]\d+)?(\[.+\])?\]\]/;
 
   if (roll_pattern.test(message)) {
     let parts = message.split(" ");
     // console.log(parts)
+
     if (pattern.test(parts[1])) {
-      let roll_parsed = roll_parser(parts[1]);
-      chatlog.processMessage(`${parts[0]} ${roll_parsed}`);
+      const describing_dice_pattern = /\[.*\]*$/;
+      const describing_dice = parts[1].match(describing_dice_pattern);
+      const message_without_describing = parts[1].replace(describing_dice_pattern, "");
+      let roll_parsed = roll_parser(message_without_describing);
+      chatlog.processMessage(`${parts[0]} ${roll_parsed}${describing_dice}`);
       return false;
     }
   } else if (pattern.test(message)) {
-    message = roll_parser(message);
+    const describing_dice_pattern = /\[.*\]*$/;
+    const describing_dice = message.match(describing_dice_pattern);
+    const message_without_describing = message.replace(describing_dice_pattern, "");
 
-    chatlog.processMessage(`/r ${message}`);
+    message = roll_parser(message_without_describing);
+    chatlog.processMessage(`/r ${message}${describing_dice && describing_dice.length > 0 ? describing_dice[0] : ""}`);
     return false;
   } else if (inside_message_roll.test(message)) {
     const deferred_roll_pattern = /\[\[(?:\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}(.*?)\]\]/g;
     const kxy_pattern = /(u|e)?\d+k\d+(x\d+)?([+]\d+)?/;
+
     let result = message.replace(
       deferred_roll_pattern,
       function (match, token) {
@@ -35,7 +43,7 @@ Hooks.on("chatMessage", function (chatlog, message, chatdata) {
 
 Hooks.on("renderChatMessage", async (app, html, msg) => {
   if (app.isRoll) {
-    const pattern = /^\d+d\d+(r1)?k\d+(x(>=)?\d+)?( \+\ \d+)?$/;
+    const pattern = /^\d+d\d+(r1)?k\d+(x(>=)?\d+)?( \+\ \d+)?(\[.+\])?$/;
 
     const roll = app.roll;
     const formula = roll.formula;
@@ -53,8 +61,10 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
       const e_div_tag = "</div>";
       const b_span_tag = '<span class="part-formula">';
       const e_span_tag = "</span>";
+      const b_flavor_tag = '<div class="part-flavor">';
       const regex_div = new RegExp(`${b_div_tag}.*?${e_div_tag}`, "g");
       const regex_span = new RegExp(`${b_span_tag}.*?${e_span_tag}`, "g");
+
 
       let roll_l5r = `${die.number}${
         die.modifiers[0] === "r1" ? die.modifiers[1] : die.modifiers[0]
@@ -68,11 +78,25 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
           : " Untrained"
       }`;
 
+      const describing_dice_pattern = /\[.*\]*$/;
+      const describing_dice = formula.match(describing_dice_pattern);
+      let flavor = "";
+      if( describing_dice ) {
+        flavor = describing_dice.length > 0 ? describing_dice[0] : "";
+      }
+
       msg.message.content = msg.message.content
-        .replace(regex_div, `${b_div_tag} ${roll_l5r} ${e_div_tag}`)
-        .replace(regex_span, `${b_span_tag} ${roll_l5r} ${e_span_tag}`);
-      html.find(".dice-formula")[0].innerHTML = roll_l5r;
-      html.find(".part-formula")[0].innerHTML = roll_l5r;
+        .replace(regex_div, `${b_div_tag} ${roll_l5r}{flavor} ${e_div_tag}`)
+        .replace(regex_span, `${b_span_tag} ${roll_l5r} ${e_span_tag}`)
+      html.find(".dice-formula")[0].innerHTML = roll_l5r + flavor;
+      let part_formula = html.find(".part-formula")[0];
+      part_formula.innerHTML = roll_l5r;
+
+      const flavor_pattern = /\[(.*)\]/;
+      if(flavor_pattern.test(flavor)) {
+         $(`${b_flavor_tag}${flavor.match(flavor_pattern)[1]}${e_span_tag}`).insertAfter(part_formula)
+      }
+
     }
   } else {
     const inside_message_roll = /\d+d\d+(r1)?k\d+(x(>=)?\d+)?(\+\d+)?/g;
