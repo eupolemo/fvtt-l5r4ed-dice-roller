@@ -37,7 +37,7 @@ Hooks.on("chatMessage", function (chatlog, message, chatdata) {
     }
 
     message = roll_parser(message_without_describing);
-    chatlog.processMessage(`/r ${message}${describing_dice && describing_dice.length > 0 ? describing_dice[0] : ""}${describing_dice ? describing_dice : ""}${describing_roll ? describing_roll[0] : ""}`);
+    chatlog.processMessage(`/r ${message}${describing_dice && describing_dice.length > 0 ? describing_dice[0] : ""}${describing_roll ? describing_roll[0] : ""}`);
     return false;
   } else if (inside_message_roll.test(message)) {
     const deferred_roll_pattern = /\[\[(?:\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}(.*?)\]\]/g;
