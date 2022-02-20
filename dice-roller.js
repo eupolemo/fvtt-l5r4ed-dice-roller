@@ -78,10 +78,8 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
     const die = roll.dice[0];
     let bonus = 0;
 
-    const operator = roll.terms.filter(e => e.operator === "+")
-    const operatorIndex = roll.terms.findIndex(e => e.operator === "+")
-    if (operator.length > 0) {
-      bonus = roll.terms[operatorIndex + 1].number;
+    if (roll.terms.includes("+")) {
+      bonus = roll.terms[roll.terms.indexOf("+") + 1];
     }
 
     if (pattern.test(formula)) {
