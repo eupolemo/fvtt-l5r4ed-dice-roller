@@ -1,4 +1,4 @@
-<img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/eupolemo/fvtt-l5r4ed-dice-roller?style=for-the-badge"> <img alt="GitHub Releases" src="https://img.shields.io/github/downloads/eupolemo/fvtt-l5r4ed-dice-roller/latest/total?style=for-the-badge">
+<img alt="GitHub release (latest by date)" src="https://img.shields.io/github/v/release/eupolemo/fvtt-l5r4ed-dice-roller?style=for-the-badge"> <img alt="GitHub Releases" src="https://img.shields.io/github/downloads/eupolemo/fvtt-l5r4ed-dice-roller/latest/l5r4ed-dice-roller.zip?color=3CB371&label=DOWNLOADS&style=for-the-badge">
 
 # fvtt-l5r4ed-dice-roller
 
@@ -38,11 +38,12 @@ It can be used with roll, GM roll, self roll, blind roll and deferred inline rol
 
 Example:
 
-- /r or /roll 6k5;
+- /r or /roll 6k5[describing dice]#describing roll;
 - /gmr or /gmroll 6k5;
 - /sr or /selfroll 6k5;
 - /br or /broll or /blindroll 6k5;
 - Message [[/r 6k5]] works well;
+- Message [[6k5]] works well;
 
 <img src="readme-resources/roll-l5r.gif"/>
 
@@ -68,3 +69,10 @@ Example:
 
 - [Issue #7](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/7) Discard excess dices from keep when have less than 10 dices on roll
 - [Issue #16](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/17) Added untrained and emphasis roll
+
+### 1.4.0
+
+- [Issue #11](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/11) Immediate Inline Rolls added
+- [Issue #12](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/12) Describing roll added
+- [Issue #13](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/13) Describing dice added
+- [Issue #24](https://github.com/eupolemo/fvtt-l5r4ed-dice-roller/issues/24) Now bonuses are shown correctly

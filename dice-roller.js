@@ -1,33 +1,69 @@
 Hooks.on("chatMessage", function (chatlog, message, chatdata) {
   // const pattern = /^\d+k\d+x\d+([+]\d+)?$/;
-  const pattern = /^(u|e)?\d+k\d+(x\d+)?([+]\d+)?$/;
+  const pattern = /^(u|e)?\d+k\d+(x\d+)?([+]\d+)?(\[.+\])?(\#(.*))?$/;
   const roll_pattern = /^(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}/;
-  const inside_message_roll = /\[\[(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}(u|e)?\d+k\d+(x\d+)?([+]\d+)?\]\]/;
-
+  const deferred_inline_roll_pattern = /\[\[(\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}(u|e)?\d+k\d+(x\d+)?([+]\d+)?(\[.+\])?\]\]/;
+  const immediate_message_roll_pattern = new RegExp(/\[\[(u|e)?\d+k\d+(x\d+)?([+]\d+)?(\[.+\])?(\#(.*))?\]\]/)
+  const inside_message_roll_pattern = new RegExp("(" + immediate_message_roll_pattern.source + ")|(" + deferred_inline_roll_pattern.source + ")")
   if (roll_pattern.test(message)) {
     let parts = message.split(" ");
     // console.log(parts)
+
     if (pattern.test(parts[1])) {
-      let roll_parsed = roll_parser(parts[1]);
-      chatlog.processMessage(`${parts[0]} ${roll_parsed}`);
+      const describing_dice_pattern = /\[.*\]*$/;
+      const describing_dice = parts[1].match(describing_dice_pattern);
+      let message_without_describing = parts[1].replace(describing_dice_pattern, "");
+
+      const describing_roll_pattern = /(\#(.*))*$/;
+      let describing_roll;
+      if(describing_roll_pattern.test(message_without_describing)) {
+        describing_roll = message_without_describing.match(describing_roll_pattern);
+        message_without_describing = message_without_describing.replace(describing_roll_pattern, "");
+      }
+
+      let roll_parsed = roll_parser(message_without_describing);
+      chatlog.processMessage(`${parts[0]} ${roll_parsed}${describing_dice ? describing_dice : ""}${describing_roll ? describing_roll[0] : ""}`);
       return false;
     }
   } else if (pattern.test(message)) {
-    message = roll_parser(message);
+    const describing_dice_pattern = /\[.*\]*$/;
+    const describing_dice = message.match(describing_dice_pattern);
+    let message_without_describing = message.replace(describing_dice_pattern, "");
 
-    chatlog.processMessage(`/r ${message}`);
+    const describing_roll_pattern = /(\#(.*))*$/;
+    let describing_roll;
+    if(describing_roll_pattern.test(message_without_describing)) {
+      describing_roll = message_without_describing.match(describing_roll_pattern);
+      message_without_describing = message_without_describing.replace(describing_roll_pattern, "");
+    }
+
+    message = roll_parser(message_without_describing);
+    chatlog.processMessage(`/r ${message}${describing_dice && describing_dice.length > 0 ? describing_dice[0] : ""}${describing_roll ? describing_roll[0] : ""}`);
     return false;
-  } else if (inside_message_roll.test(message)) {
+  } else if (inside_message_roll_pattern.test(message)) {
     const deferred_roll_pattern = /\[\[(?:\/r(?:oll)? |\/gmr(?:oll)? |\/b(?:lind)?r(?:oll)? |\/s(?:elf)?r(?:oll)? ){1}(.*?)\]\]/g;
     const kxy_pattern = /(u|e)?\d+k\d+(x\d+)?([+]\d+)?/;
-    let result = message.replace(
-      deferred_roll_pattern,
-      function (match, token) {
-        if (!inside_message_roll.test(match)) return match;
-        return match.replace(kxy_pattern, roll_parser(token));
-      }
-    );
 
+    let result = message;
+
+    const inline_message_pattern = /\[\[((u|e)?\d+k\d+(x\d+)?([+]\d+)?(\[.+\])?(\#(.*))?){1}\]\]/g
+
+    if( deferred_roll_pattern.test(message))
+      result = message.replace(
+        deferred_roll_pattern,
+        function (match, token) {
+          if (!deferred_roll_pattern.test(match)) return match;
+          return match.replace(kxy_pattern, roll_parser(token));
+        }
+      );
+    else if ( inline_message_pattern.test(message))
+      result = message.replace(
+        inline_message_pattern,
+        function (match, token) {
+          if (!inline_message_pattern.test(match)) return match;
+          return match.replace(kxy_pattern, roll_parser(token));
+        }
+      );
     chatlog.processMessage(result);
     return false;
   }
@@ -35,7 +71,7 @@ Hooks.on("chatMessage", function (chatlog, message, chatdata) {
 
 Hooks.on("renderChatMessage", async (app, html, msg) => {
   if (app.isRoll) {
-    const pattern = /^\d+d\d+(r1)?k\d+(x(>=)?\d+)?( \+\ \d+)?$/;
+    const pattern = /^\d+d\d+(r1)?k\d+(x(>=)?\d+)?( \+\ \d+)?(\[.+\])?$/;
 
     const roll = app.roll;
     const formula = roll.formula;
@@ -51,8 +87,10 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
       const e_div_tag = "</div>";
       const b_span_tag = '<span class="part-formula">';
       const e_span_tag = "</span>";
+      const b_flavor_tag = '<div class="part-flavor">';
       const regex_div = new RegExp(`${b_div_tag}.*?${e_div_tag}`, "g");
       const regex_span = new RegExp(`${b_span_tag}.*?${e_span_tag}`, "g");
+
 
       let roll_l5r = `${die.number}${
         die.modifiers[0] === "r1" ? die.modifiers[1] : die.modifiers[0]
@@ -66,58 +104,70 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
           : " Untrained"
       }`;
 
+      const describing_dice_pattern = /\[.*\]*$/;
+      const describing_dice = formula.match(describing_dice_pattern);
+      let flavor = "";
+      if( describing_dice ) {
+        flavor = describing_dice.length > 0 ? describing_dice[0] : "";
+      }
+
       msg.message.content = msg.message.content
-        .replace(regex_div, `${b_div_tag} ${roll_l5r} ${e_div_tag}`)
-        .replace(regex_span, `${b_span_tag} ${roll_l5r} ${e_span_tag}`);
-      html.find(".dice-formula")[0].innerHTML = roll_l5r;
-      html.find(".part-formula")[0].innerHTML = roll_l5r;
+        .replace(regex_div, `${b_div_tag} ${roll_l5r}{flavor} ${e_div_tag}`)
+        .replace(regex_span, `${b_span_tag} ${roll_l5r} ${e_span_tag}`)
+      html.find(".dice-formula")[0].innerHTML = roll_l5r + flavor;
+      let part_formula = html.find(".part-formula")[0];
+      part_formula.innerHTML = roll_l5r;
+
+      const flavor_pattern = /\[(.*)\]/;
+      if(flavor_pattern.test(flavor)) {
+         $(`${b_flavor_tag}${flavor.match(flavor_pattern)[1]}${e_span_tag}`).insertAfter(part_formula)
+      }
+
     }
   } else {
     const inside_message_roll = /\d+d\d+(r1)?k\d+(x(>=)?\d+)?(\+\d+)?/g;
     if (
       !inside_message_roll.test(msg.message.content) ||
-      !msg.message.content.includes("data-formula")
+      !msg.message.content.match(inside_message_roll)
     )
       return;
-
     const roll = msg.message.content.match(inside_message_roll);
     for (var child of html.find(".message-content")[0].children) {
-      const roll = child.getAttribute("title").match(inside_message_roll).pop();
-      let [dices, , kept_explode_bonus] = roll.split(/[dk]+/);
-      let kept,
-        explode_bonus = 0,
-        bonus = 0;
-      let explode = 11;
-      if (kept_explode_bonus.toString().includes("x")) {
-        [kept, explode_bonus] = kept_explode_bonus.split(/[x>=]+/);
-      } else if (kept_explode_bonus.includes("+")) {
-        [kept, bonus] = kept_explode_bonus.split(/[+]+/);
-      }
-      if (explode_bonus.toString().includes("+")) {
-        [explode, bonus = 0] = explode_bonus.split(/[+]+/);
-      }
-
-      let xky = `${dices}k${kept}${bonus > 0 ? " + " + bonus : ""}${
-        explode <= 10
-          ? " Exploding " +
-            explode +
-            (roll.includes("r1") ? " with Emphasis" : "")
-          : " Untrained"
-      }`;
-      child.setAttribute("title", `${xky}`);
-      child.childNodes.forEach((element) => {
-        let a = 0;
-        if (element.nodeValue === null) {
-          return;
+      if( inside_message_roll.test(child.getAttribute("title")) ) {
+        const roll = child.getAttribute("title").match(inside_message_roll).pop();
+        let [dices, , kept_explode_bonus] = roll.split(/[dk]+/);
+        let kept,
+          explode_bonus = 0,
+          bonus = 0;
+        let explode = 11;
+        if (kept_explode_bonus.toString().includes("x")) {
+          [kept, explode_bonus] = kept_explode_bonus.split(/[x>=]+/);
+        } else if (kept_explode_bonus.includes("+")) {
+          [kept, bonus] = kept_explode_bonus.split(/[+]+/);
         }
-        element.nodeValue = element.nodeValue.replace(
-          inside_message_roll,
-          `${xky}`
-        );
-      });
-      // child.innerHTML = child.innerHTML
-      //   .text()
-      //   .replace(inside_message_roll, `${xky}`);
+        if (explode_bonus.toString().includes("+")) {
+          [explode, bonus = 0] = explode_bonus.split(/[+]+/);
+        }
+
+        let xky = `${dices}k${kept}${bonus > 0 ? " + " + bonus : ""}${
+          explode <= 10
+            ? " Exploding " +
+              explode +
+              (roll.includes("r1") ? " with Emphasis" : "")
+            : " Untrained"
+        }`;
+        child.setAttribute("title", `${xky}`);
+        child.childNodes.forEach((element) => {
+          let a = 0;
+          if (element.nodeValue === null) {
+            return;
+          }
+          element.nodeValue = element.nodeValue.replace(
+            inside_message_roll,
+            `${xky}`
+          );
+        });
+      }
     }
   }
 });
