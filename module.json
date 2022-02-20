@@ -3,7 +3,7 @@
   "title": "Dice Roller - Legends of the five rings 4th edition",
   "description": "Dice roller using syntax of L5R 4th Edition.",
   "author": "Eupolemo Castro",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "minimumCoreVersion": "0.8.8",
   "compatibleCoreVersion": "9.249",
   "scripts": ["./dice-roller.js"],
