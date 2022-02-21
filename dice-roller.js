@@ -282,6 +282,38 @@ Hooks.on("quenchReady", (quench) => {
     (context) => {
       const { describe, it, assert } = context;
 
+      describe("Calculate Keeps", function () {
+        it("10 dices, 1 kept and 0 rise sould be 1 kept and 0 rise", function () {
+          let {kept,  rises} = calculate_keeps({dices: 10, kept: 1, rises: 0});
+          assert.ok(kept === 1);
+          assert.ok(rises === 0);
+        })
+
+        it("10 dices, 1 kept and 1 rise should be 1 kept and 1 rise", function () {
+          let {kept, rises} = calculate_keeps({dices: 10, kept: 1, rises: 1});
+          assert.ok(kept === 1);
+          assert.ok(rises === 1);
+        })
+
+        it("10 dices, 1 kept and 2 rises should be 2 kept and 0 rise", function () {
+          let {kept, rises} = calculate_keeps({dices: 10, kept: 1, rises: 2});
+          assert.ok(kept === 2);
+          assert.ok(rises === 0);
+        })
+
+        it("10 dices, 10 kept and 2 rises should be 10 kept and 2 rises", function () {
+          let {kept, rises} = calculate_keeps({dices: 10, kept: 10, rises: 2});
+          assert.ok(kept === 10);
+          assert.ok(rises === 2);
+        })
+
+        it("10 dices, 7 kept and 7 rises should be 10 kept and 1 rise", function () {
+          let {kept, rises} = calculate_keeps({dices: 10, kept: 7, rises: 7});
+          assert.ok(kept === 10);
+          assert.ok(rises === 1);
+        })
+      });
+
       describe("Calculate Rises", function () {
         it("10 dices and 0 rises sould be 10 dices and 0 rises", function () {
           let {dices, rises} = calculate_rises({dices: 10, rises: 0});
