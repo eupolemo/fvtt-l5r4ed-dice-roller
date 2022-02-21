@@ -278,27 +278,47 @@ function calculate_bonus({ rises, bonus } = roll) {
 
 Hooks.on("quenchReady", (quench) => {
   quench.registerBatch(
-    "l5r4d.parser.bonus",
+    "l5r4d.dice.parser",
     (context) => {
       const { describe, it, assert } = context;
 
+      describe("Calculate Rises", function () {
+        it("10 dices and 0 rises sould be 10 dices and 0 rises", function () {
+          let {dices, rises} = calculate_rises({dices: 10, rises: 0});
+          assert.ok(dices === 10);
+          assert.ok(rises === 0);
+        })
+
+        it("11 dices and 0 rises should be 10 dices and 1 rise", function () {
+          let {dices, rises} = calculate_rises({dices: 11, rises: 0});
+          assert.ok(dices === 10);
+          assert.ok(rises === 1);
+        })
+
+        it("12 dices and 0 rise should be 10 dices and 2 rises", function () {
+          let {dices, rises} = calculate_rises({dices: 12, rises: 0});
+          assert.ok(dices === 10);
+          assert.ok(rises === 2);
+        })
+      });
+
       describe("Calculate Bonus", function () {
-        it("Rises: 0 and Bonus: 0 should return 0", function () {
+        it("0 rises and 0 of bonus should be 0 of bonus", function () {
           let bonus = calculate_bonus({rises: 0, bonus: 0});
           assert.ok(bonus === 0);
         });
 
-        it("Rises: 5 and Bonus: 0 should return 10", function () {
+        it("5 rises and 0 of bonus should be 10 of bonus", function () {
           let bonus = calculate_bonus({rises: 5, bonus: 0});
           assert.ok(bonus === 10);
         });
 
-        it("Rises: 0 and Bonus: 1 should return 1", function () {
+        it("0 rises and 1 of bonus should be 1 of bonus", function () {
           let bonus = calculate_bonus({rises: 0, bonus: 1});
           assert.ok(bonus === 1);
         });
 
-        it("Rises: 1 and Bonus: 1 should return 3", function () {
+        it("1 rise and 1 of bonus should be 3 of bonus", function () {
           let bonus = calculate_bonus({rises: 1, bonus: 1});
           assert.ok(bonus === 3);
         });
