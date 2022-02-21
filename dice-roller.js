@@ -275,3 +275,35 @@ function calculate_bonus({ rises, bonus } = roll) {
   bonus += rises * 2;
   return bonus;
 }
+
+Hooks.on("quenchReady", (quench) => {
+  quench.registerBatch(
+    "l5r4d.parser.bonus",
+    (context) => {
+      const { describe, it, assert } = context;
+
+      describe("Calculate Bonus", function () {
+        it("Rises: 0 and Bonus: 0 should return 0", function () {
+          let bonus = calculate_bonus({rises: 0, bonus: 0});
+          assert.ok(bonus === 0);
+        });
+
+        it("Rises: 5 and Bonus: 0 should return 10", function () {
+          let bonus = calculate_bonus({rises: 5, bonus: 0});
+          assert.ok(bonus === 10);
+        });
+
+        it("Rises: 0 and Bonus: 1 should return 1", function () {
+          let bonus = calculate_bonus({rises: 0, bonus: 1});
+          assert.ok(bonus === 1);
+        });
+
+        it("Rises: 1 and Bonus: 1 should return 3", function () {
+          let bonus = calculate_bonus({rises: 1, bonus: 1});
+          assert.ok(bonus === 3);
+        });
+      });
+    },
+    { displayName: "L5R4Ed dice Roller: Tests suite" },
+  );
+});
