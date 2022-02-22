@@ -282,6 +282,18 @@ Hooks.on("quenchReady", (quench) => {
     (context) => {
       const { describe, it, assert } = context;
 
+      describe("Parce Int", function () {
+        it("5 should be 5", function () {
+          let value = parseIntIfPossible("5");
+          assert.ok(value === 5);
+        });
+
+        it("1k1 should be 1k1", function () {
+          let value = parseIntIfPossible("1k1");
+          assert.ok(value === "1k1");
+        });
+      });
+
       describe("Calculate Roll", function () {
         it("1 die keeping 1 should be 1 die keeping 1", function () {
           let {dice, kept, bonus, rises, explode, untrained, emphasis} = calculate_roll({
@@ -292,7 +304,7 @@ Hooks.on("quenchReady", (quench) => {
           assert.ok(rises === 0);
           assert.ok(explode === 10);
           assert.ok(untrained === false);
-          assert.ok(emphasis === false)
+          assert.ok(emphasis === false);
         });
 
         it("untrained 1 die keeping 1 should be 1 die keeping 1 with untrained true", function () {
@@ -304,7 +316,7 @@ Hooks.on("quenchReady", (quench) => {
           assert.ok(rises === 0);
           assert.ok(explode === 10);
           assert.ok(untrained === true);
-          assert.ok(emphasis === false)
+          assert.ok(emphasis === false);
         });
 
         it("emphasis 1 die keeping 1 should be 1 die keeping 1 with emphasis true", function () {
@@ -316,7 +328,7 @@ Hooks.on("quenchReady", (quench) => {
           assert.ok(rises === 0);
           assert.ok(explode === 10);
           assert.ok(untrained === false);
-          assert.ok(emphasis === true)
+          assert.ok(emphasis === true);
         });
 
         it("13 dice keeping 1 exploding 9 should be 10 dice keeping 2 with 1 rise", function () {
@@ -328,7 +340,7 @@ Hooks.on("quenchReady", (quench) => {
           assert.ok(rises === 1);
           assert.ok(explode === 9);
           assert.ok(untrained === false);
-          assert.ok(emphasis === false)
+          assert.ok(emphasis === false);
         });
       });
 
