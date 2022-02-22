@@ -137,7 +137,7 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
     for (var child of html.find(".message-content")[0].children) {
       if( inside_message_roll.test(child.getAttribute("title")) ) {
         const roll = child.getAttribute("title").match(inside_message_roll).pop();
-        let [dices, , kept_explode_bonus] = roll.split(/[dk]+/);
+        let [dice, , kept_explode_bonus] = roll.split(/[dk]+/);
         let kept,
           explode_bonus = 0,
           bonus = 0;
@@ -151,7 +151,7 @@ Hooks.on("renderChatMessage", async (app, html, msg) => {
           [explode, bonus = 0] = explode_bonus.split(/[+]+/);
         }
 
-        let xky = `${dices}k${kept}${bonus > 0 ? " + " + bonus : ""}${
+        let xky = `${dice}k${kept}${bonus > 0 ? " + " + bonus : ""}${
           explode <= 10
             ? " Exploding " +
               explode +
@@ -184,7 +184,7 @@ function roll_parser(roll) {
     roll = roll.replace("e", "");
     emphasis = true;
   }
-  let [dices, kept_explode_bonus] = roll.split`k`.map(parseIntIfPossible);
+  let [dice, kept_explode_bonus] = roll.split`k`.map(parseIntIfPossible);
   let kept,
     explode_bonus,
     explode = 10,
@@ -197,7 +197,7 @@ function roll_parser(roll) {
   }
 
   let roll_values = {
-    dices,
+    dice,
     kept,
     bonus,
     rises: 0,
@@ -207,14 +207,14 @@ function roll_parser(roll) {
   };
 
   let result = calculate_roll(roll_values);
-  roll_l5r = `${result.dices}k${result.kept}${
+  roll_l5r = `${result.dice}k${result.kept}${
     result.bonus > 0
       ? " + " + result.bonus
       : result.bonus < 0
       ? " - " + result.bonus
       : ""
   }${result.untrained ? " Untrained" : " Exploding " + result.explode}`;
-  return `${result.dices}d10${emphasis ? "r1" : ""}k${result.kept}${
+  return `${result.dice}d10${emphasis ? "r1" : ""}k${result.kept}${
     result.untrained ? "" : "x>=" + result.explode
   }+${result.bonus}`;
 }
@@ -230,8 +230,8 @@ function parseIntIfPossible(x) {
 
 function calculate_roll(roll) {
   let calculated_roll = roll;
-  ({ dices, rises } = calculate_rises(roll));
-  calculated_roll.dices = dices;
+  ({ dice, rises } = calculate_rises(roll));
+  calculated_roll.dice = dice;
   calculated_roll.rises = rises;
   ({ kept, rises } = calculate_keeps(calculated_roll));
   calculated_roll.rises = rises;
@@ -240,16 +240,16 @@ function calculate_roll(roll) {
   return calculated_roll;
 }
 
-function calculate_rises({ dices, rises } = roll) {
-  if (dices > 10) {
-    rises = dices - 10;
-    dices = 10;
+function calculate_rises({ dice, rises } = roll) {
+  if (dice > 10) {
+    rises = dice - 10;
+    dice = 10;
   }
-  return { dices, rises };
+  return { dice, rises };
 }
 
-function calculate_keeps({ dices, kept, rises } = roll) {
-  if (dices < 10) {
+function calculate_keeps({ dice, kept, rises } = roll) {
+  if (dice < 10) {
     if (kept > 10) {
       kept = 10;
     }
@@ -282,56 +282,106 @@ Hooks.on("quenchReady", (quench) => {
     (context) => {
       const { describe, it, assert } = context;
 
+      describe("Calculate Roll", function () {
+        it("1 die keeping 1 should be 1 die keeping 1", function () {
+          let {dice, kept, bonus, rises, explode, untrained, emphasis} = calculate_roll({
+            dice: 1, kept: 1, bonus: 0, rises: 0, explode: 10, untrained: false, emphasis: false});
+          assert.ok(dice === 1);
+          assert.ok(kept === 1);
+          assert.ok(bonus === 0);
+          assert.ok(rises === 0);
+          assert.ok(explode === 10);
+          assert.ok(untrained === false);
+          assert.ok(emphasis === false)
+        });
+
+        it("untrained 1 die keeping 1 should be 1 die keeping 1 with untrained true", function () {
+          let {dice, kept, bonus, rises, explode, untrained, emphasis} = calculate_roll({
+            dice: 1, kept: 1, bonus: 0, rises: 0, explode: 10, untrained: true, emphasis: false});
+          assert.ok(dice === 1);
+          assert.ok(kept === 1);
+          assert.ok(bonus === 0);
+          assert.ok(rises === 0);
+          assert.ok(explode === 10);
+          assert.ok(untrained === true);
+          assert.ok(emphasis === false)
+        });
+
+        it("emphasis 1 die keeping 1 should be 1 die keeping 1 with emphasis true", function () {
+          let {dice, kept, bonus, rises, explode, untrained, emphasis} = calculate_roll({
+            dice: 1, kept: 1, bonus: 0, rises: 0, explode: 10, untrained: false, emphasis: true});
+          assert.ok(dice === 1);
+          assert.ok(kept === 1);
+          assert.ok(bonus === 0);
+          assert.ok(rises === 0);
+          assert.ok(explode === 10);
+          assert.ok(untrained === false);
+          assert.ok(emphasis === true)
+        });
+
+        it("13 dice keeping 1 exploding 9 should be 10 dice keeping 2 with 1 rise", function () {
+          let {dice, kept, bonus, rises, explode, untrained, emphasis} = calculate_roll({
+            dice: 13, kept: 1, bonus: 0, rises: 0, explode: 9, untrained: false, emphasis: false});
+          assert.ok(dice === 10);
+          assert.ok(kept === 2);
+          assert.ok(bonus === 2);
+          assert.ok(rises === 1);
+          assert.ok(explode === 9);
+          assert.ok(untrained === false);
+          assert.ok(emphasis === false)
+        });
+      });
+
       describe("Calculate Keeps", function () {
-        it("10 dices, 1 kept and 0 rise sould be 1 kept and 0 rise", function () {
-          let {kept,  rises} = calculate_keeps({dices: 10, kept: 1, rises: 0});
+        it("10 dice, 1 kept and 0 rise should be 1 kept and 0 rise", function () {
+          let {kept,  rises} = calculate_keeps({dice: 10, kept: 1, rises: 0});
           assert.ok(kept === 1);
           assert.ok(rises === 0);
-        })
+        });
 
-        it("10 dices, 1 kept and 1 rise should be 1 kept and 1 rise", function () {
-          let {kept, rises} = calculate_keeps({dices: 10, kept: 1, rises: 1});
+        it("10 dice, 1 kept and 1 rise should be 1 kept and 1 rise", function () {
+          let {kept, rises} = calculate_keeps({dice: 10, kept: 1, rises: 1});
           assert.ok(kept === 1);
           assert.ok(rises === 1);
-        })
+        });
 
-        it("10 dices, 1 kept and 2 rises should be 2 kept and 0 rise", function () {
-          let {kept, rises} = calculate_keeps({dices: 10, kept: 1, rises: 2});
+        it("10 dice, 1 kept and 2 rises should be 2 kept and 0 rise", function () {
+          let {kept, rises} = calculate_keeps({dice: 10, kept: 1, rises: 2});
           assert.ok(kept === 2);
           assert.ok(rises === 0);
-        })
+        });
 
-        it("10 dices, 10 kept and 2 rises should be 10 kept and 2 rises", function () {
-          let {kept, rises} = calculate_keeps({dices: 10, kept: 10, rises: 2});
+        it("10 dice, 10 kept and 2 rises should be 10 kept and 2 rises", function () {
+          let {kept, rises} = calculate_keeps({dice: 10, kept: 10, rises: 2});
           assert.ok(kept === 10);
           assert.ok(rises === 2);
-        })
+        });
 
-        it("10 dices, 7 kept and 7 rises should be 10 kept and 1 rise", function () {
-          let {kept, rises} = calculate_keeps({dices: 10, kept: 7, rises: 7});
+        it("10 dice, 7 kept and 7 rises should be 10 kept and 1 rise", function () {
+          let {kept, rises} = calculate_keeps({dice: 10, kept: 7, rises: 7});
           assert.ok(kept === 10);
           assert.ok(rises === 1);
-        })
+        });
       });
 
       describe("Calculate Rises", function () {
-        it("10 dices and 0 rises sould be 10 dices and 0 rises", function () {
-          let {dices, rises} = calculate_rises({dices: 10, rises: 0});
-          assert.ok(dices === 10);
+        it("10 dice and 0 rises sould be 10 dice and 0 rises", function () {
+          let {dice, rises} = calculate_rises({dice: 10, rises: 0});
+          assert.ok(dice === 10);
           assert.ok(rises === 0);
-        })
+        });
 
-        it("11 dices and 0 rises should be 10 dices and 1 rise", function () {
-          let {dices, rises} = calculate_rises({dices: 11, rises: 0});
-          assert.ok(dices === 10);
+        it("11 dice and 0 rises should be 10 dice and 1 rise", function () {
+          let {dice, rises} = calculate_rises({dice: 11, rises: 0});
+          assert.ok(dice === 10);
           assert.ok(rises === 1);
-        })
+        });
 
-        it("12 dices and 0 rise should be 10 dices and 2 rises", function () {
-          let {dices, rises} = calculate_rises({dices: 12, rises: 0});
-          assert.ok(dices === 10);
+        it("12 dice and 0 rise should be 10 dice and 2 rises", function () {
+          let {dice, rises} = calculate_rises({dice: 12, rises: 0});
+          assert.ok(dice === 10);
           assert.ok(rises === 2);
-        })
+        });
       });
 
       describe("Calculate Bonus", function () {
