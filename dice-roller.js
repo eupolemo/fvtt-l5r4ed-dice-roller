@@ -282,6 +282,49 @@ Hooks.on("quenchReady", (quench) => {
     (context) => {
       const { describe, it, assert } = context;
 
+      describe("Roll Parser", function () {
+        it("1k1 should be 1d10k1x>=10", function () {
+          let roll = roll_parser("1k1");
+          assert.ok(roll === "1d10k1x>=10+0");
+        })
+        it("5k3+1 should be 5d10k3x>=10+1", function () {
+          let roll = roll_parser("5k3+1");
+          assert.ok(roll === "5d10k3x>=10+1");
+        })
+        it("11k4 should be 10d10k4x>=10+2", function () {
+          let roll = roll_parser("11k4");
+          assert.ok(roll === "10d10k4x>=10+2");
+        })
+        it("12k4 should be 10d10k5x>=10+0", function () {
+          let roll = roll_parser("12k4");
+          assert.ok(roll === "10d10k5x>=10+0");
+        })
+        it("13k4+1 should be 10d10k5x>=10+3", function () {
+          let roll = roll_parser("13k4+1");
+          assert.ok(roll === "10d10k5x>=10+3");
+        })
+        it("12k10 should be 10d10k10x>=10+4", function () {
+          let roll = roll_parser("12k10");
+          assert.ok(roll === "10d10k10x>=10+4");
+        })
+        it("14k9 should be 10d10k10x>=10+4", function () {
+          let roll = roll_parser("14k9");
+          assert.ok(roll === "10d10k10x>=10+4");
+        })
+        it("u10k7 should be 10d10k7+0", function () {
+          let roll = roll_parser("u10k7");
+          assert.ok(roll === "10d10k7+0")
+        })
+        it("e10k5 should be 10d10r1k5x>=10+0", function () {
+          let roll = roll_parser("e10k5");
+          assert.ok(roll === "10d10r1k5x>=10+0")
+        })
+        it("e10k5x8 should be 10d10r1k5x>=8+0", function () {
+          let roll = roll_parser("e10k5x8");
+          assert.ok(roll === "10d10r1k5x>=8+0")
+        })
+      })
+
       describe("Parce Int", function () {
         it("5 should be 5", function () {
           let value = parseIntIfPossible("5");
